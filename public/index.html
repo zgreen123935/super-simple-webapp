@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Airtable Search</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Search Sites</h1>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Enter search term...">
+      <button onclick="searchRecords()">Search</button>
+    </div>
+    <div id="results"></div>
+  </div>
+
+  <script>
+    async function searchRecords() {
+      const searchTerm = document.getElementById('searchInput').value;
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = 'Loading...';
+
+      try {
+        const response = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ searchTerm })
+        });
+        
+        const data = await response.json();
+        
+        if (data.length === 0) {
+          resultsDiv.innerHTML = 'No matching records found';
+          return;
+        }
+
+        resultsDiv.innerHTML = data.map(record => `
+          <div class="record">
+            <h3>Record ID: ${record.id}</h3>
+            ${Object.entries(record.fields).map(([fieldId, value]) => `
+              <div class="field">
+                <strong>${fieldId}:</strong> 
+                ${typeof value === 'object' ? JSON.stringify(value) : value}
+              </div>
+            `).join('')}
+          </div>
+        `).join('');
+        
+      } catch (error) {
+        resultsDiv.innerHTML = `Error: ${error.message}`;
+      }
+    }
+  </script>
+</body>
+</html>
