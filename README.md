@@ -12,6 +12,7 @@
 *Note: Add field IDs here as we use them in the application*
 - **Search Field**: `fldFiKkGxKdXC5Xlh`
 - **Install Complete Checkbox**: `fldn0eoqW6c3aOVlR`
+- **Work Order Details**: `fldBz7wS6JKVuEBdO`
 
 ## Environment Variables
 The application uses the following environment variables:
@@ -29,5 +30,6 @@ The application uses the following environment variables:
 1. Search for sites using the search field
 2. Access sites directly via URL: `http://localhost:3000/site/{siteId}`
 3. Mark installations as complete with the update button
-4. Rate limiting to prevent abuse
-5. Input sanitization for security
+4. Display Work Order Details with status indicators
+5. Rate limiting to prevent abuse
+6. Input sanitization for security

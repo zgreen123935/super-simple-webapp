@@ -10,15 +10,40 @@
       padding-top: 15px;
     }
 
-    #completeButton {
-      background-color: #2196F3;
-      padding: 10px 20px;
-      font-size: 16px;
+    .work-order-details {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 25px;
+      border: 1px solid #e0e0e0;
     }
 
-    #statusMessage {
+    .status-pill {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      margin-bottom: 15px;
+    }
+
+    .status-pill.generated {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .status-pill.completed {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .warning {
+      color: #d32f2f;
       margin-top: 10px;
-      color: #666;
+      font-weight: bold;
+    }
+
+    .field-group {
+      margin-top: 25px;
     }
   </style>
 </head>
@@ -33,6 +58,28 @@
   </div>
 
   <script>
+    const FIELD_MAP = {
+      'fldBz7wS6JKVuEBdO': 'Work Order Details',
+      'fldFiKkGxKdXC5Xlh': 'Site Code',
+      'fldn0eoqW6c3aOVlR': 'Install Complete'
+    };
+
+    function getFieldName(fieldId) {
+      return FIELD_MAP[fieldId] || fieldId;
+    }
+
+    function formatFieldValue(fieldId, value) {
+      if (fieldId === 'fldn0eoqW6c3aOVlR') {
+        return value ? '✓ Completed' : 'Pending';
+      }
+      
+      if (typeof value === 'object') {
+        return JSON.stringify(value);
+      }
+      
+      return value;
+    }
+
     function checkUrlForSiteId() {
       const pathSegments = window.location.pathname.split('/');
       if (pathSegments[1] === 'site' && pathSegments[2]) {
@@ -63,19 +110,38 @@
 
         resultsDiv.innerHTML = data.map(record => `
           <div class="record">
-            <h3>Record ID: ${record.id}</h3>
-            ${Object.entries(record.fields).map(([fieldId, value]) => `
-              <div class="field">
-                <strong>${fieldId}:</strong> 
-                ${typeof value === 'object' ? JSON.stringify(value) : value}
+            ${record.fields.fldBz7wS6JKVuEBdO ? `
+              <div class="work-order-details">
+                <h2>Work Order Details</h2>
+                <div class="status-pill ${record.fields.fldBz7wS6JKVuEBdO.state}">
+                  ${record.fields.fldBz7wS6JKVuEBdO.state.toUpperCase()}
+                </div>
+                <p>${record.fields.fldBz7wS6JKVuEBdO.value}</p>
+                ${record.fields.fldBz7wS6JKVuEBdO.isStale ? 
+                  '<div class="warning">⚠️ This information may be outdated</div>' : ''}
               </div>
-            `).join('')}
-            <div class="actions">
-              <button id="completeButton-${record.id}" onclick="markComplete('${record.id}')">
-                Mark Installation Complete
-              </button>
-              <div id="statusMessage-${record.id}"></div>
+            ` : ''}
+
+            <div class="field-group">
+              <h3>Site Details</h3>
+              ${Object.entries(record.fields)
+                .filter(([fieldId]) => fieldId !== 'fldBz7wS6JKVuEBdO')
+                .map(([fieldId, value]) => `
+                  <div class="field" data-field-id="${fieldId}">
+                    <strong>${getFieldName(fieldId)}:</strong>
+                    ${formatFieldValue(fieldId, value)}
+                  </div>
+                `).join('')}
             </div>
+
+            ${window.location.pathname.includes('/site/') ? `
+              <div class="actions">
+                <button id="completeButton-${record.id}" onclick="markComplete('${record.id}')">
+                  Mark Installation Complete
+                </button>
+                <div id="statusMessage-${record.id}"></div>
+              </div>
+            ` : ''}
           </div>
         `).join('');
         
