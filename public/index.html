@@ -15,8 +15,17 @@
   </div>
 
   <script>
-    async function searchRecords() {
-      const searchTerm = document.getElementById('searchInput').value;
+    function checkUrlForSiteId() {
+      const pathSegments = window.location.pathname.split('/');
+      if (pathSegments[1] === 'site' && pathSegments[2]) {
+        const siteId = decodeURIComponent(pathSegments[2]);
+        document.getElementById('searchInput').value = siteId;
+        searchRecords(siteId);
+      }
+    }
+
+    async function searchRecords(searchTerm = null) {
+      const searchValue = searchTerm || document.getElementById('searchInput').value;
       const resultsDiv = document.getElementById('results');
       resultsDiv.innerHTML = 'Loading...';
 
@@ -24,7 +33,7 @@
         const response = await fetch('/api/search', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ searchTerm })
+          body: JSON.stringify({ searchTerm: searchValue })
         });
         
         const data = await response.json();
@@ -50,6 +59,9 @@
         resultsDiv.innerHTML = `Error: ${error.message}`;
       }
     }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', checkUrlForSiteId);
   </script>
 </body>
 </html>
