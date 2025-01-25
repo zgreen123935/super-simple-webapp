@@ -3,6 +3,24 @@
 <head>
   <title>Airtable Search</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .actions {
+      margin-top: 20px;
+      border-top: 1px solid #ddd;
+      padding-top: 15px;
+    }
+
+    #completeButton {
+      background-color: #2196F3;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+
+    #statusMessage {
+      margin-top: 10px;
+      color: #666;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -52,11 +70,58 @@
                 ${typeof value === 'object' ? JSON.stringify(value) : value}
               </div>
             `).join('')}
+            <div class="actions">
+              <button id="completeButton-${record.id}" onclick="markComplete('${record.id}')">
+                Mark Installation Complete
+              </button>
+              <div id="statusMessage-${record.id}"></div>
+            </div>
           </div>
         `).join('');
         
       } catch (error) {
         resultsDiv.innerHTML = `Error: ${error.message}`;
+      }
+    }
+
+    async function markComplete(recordId) {
+      if(!confirm('Are you sure you want to mark this installation complete?')) {
+        return;
+      }
+
+      const button = document.getElementById(`completeButton-${recordId}`);
+      const status = document.getElementById(`statusMessage-${recordId}`);
+      
+      try {
+        button.disabled = true;
+        button.textContent = 'Updating...';
+        status.textContent = '';
+        
+        const response = await fetch(`/api/update/${recordId}`, {
+          method: 'PATCH'
+        });
+        
+        if (!response.ok) throw new Error('Update failed');
+        
+        button.textContent = '✓ Completed!';
+        button.style.backgroundColor = '#4CAF50';
+        status.textContent = 'Record updated successfully in Airtable';
+        
+        // Refresh data after 2 seconds
+        setTimeout(() => {
+          searchRecords(document.getElementById('searchInput').value);
+        }, 2000);
+        
+      } catch (error) {
+        status.textContent = `Error: ${error.message}`;
+        button.textContent = 'Try Again';
+        button.style.backgroundColor = '#f44336';
+      } finally {
+        setTimeout(() => {
+          button.disabled = false;
+          button.textContent = 'Mark Installation Complete';
+          button.style.backgroundColor = '#2196F3';
+        }, 3000);
       }
     }
 
